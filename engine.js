@@ -80,6 +80,7 @@
       stopajlar: [],
       kurumsal: [],
       atlanan: {},       // hisse disi varlik siniflari: ad -> adet
+      sifirSatis: [],    // tutari 0 olan satis kayitlari (gercek satis degil)
       transferVar: false,
       uyarilar: []
     };
@@ -140,6 +141,10 @@
         var tutar = !isNaN(hasilat) && Math.abs(hasilat) > EPS ? Math.abs(hasilat) : Math.abs(adet * fiyat);
         if (isNaN(tutar)) {
           sonuc.uyarilar.push({ kod: 'SATIR', mesaj: 'Tutarı okunamayan işlem atlandı (satır ' + (n + 1) + ').' });
+          continue;
+        }
+        if (adet < 0 && tutar < 1e-6) {
+          sonuc.sifirSatis.push({ sembol: sembol, tarih: ts.tarih, adet: Math.abs(adet) });
           continue;
         }
         sonuc.islemler.push({
@@ -240,6 +245,20 @@
     var tekrar = isl.tekrar + tem.tekrar + sto.tekrar;
     if (tekrar > 0) {
       u.push({ kod: 'TEKRAR', mesaj: tekrar + ' kayıt birden fazla dosyada bulundu ve bir kez sayıldı (dosyaların dönemleri çakışıyor).' });
+    }
+    var sifir = [];
+    dosyalar.forEach(function (d) { sifir = sifir.concat(d.sifirSatis || []); });
+    if (sifir.length) {
+      var sSem = {}, sTar = {};
+      sifir.forEach(function (x) { sSem[x.sembol] = true; sTar[x.tarih] = true; });
+      var semListe = Object.keys(sSem).sort(), tarListe = Object.keys(sTar).sort();
+      u.push({
+        kod: 'SIFIRSATIS',
+        mesaj: sifir.length + ' satış kaydının tutarı 0 olduğu için hesaba katılmadı (' + semListe.slice(0, 8).join(', ') +
+          (semListe.length > 8 ? ' ve ' + (semListe.length - 8) + ' hisse daha' : '') + '; tarih: ' + tarListe[0] +
+          (tarListe.length > 1 ? ' – ' + tarListe[tarListe.length - 1] : '') +
+          '). Hesap sıfırlama, hisse kaydının silinmesi ya da transfer olabilir; gerçek bir satış değildir. Hisse değersiz kalıp silindiyse bunu mali müşavirinize sorun.'
+      });
     }
     var atlanan = {};
     var transferVar = false;
@@ -398,12 +417,23 @@
       }
     });
 
+    var eksikGrup = {}, eksikSira = [];
     eksikSatis.forEach(function (x) {
+      var g = eksikGrup[x.sembol];
+      if (!g) { g = eksikGrup[x.sembol] = { sembol: x.sembol, n: 0, adet: 0, ilk: x.tarih }; eksikSira.push(g); }
+      g.n++; g.adet += x.adet;
+    });
+    if (eksikSira.length) {
+      var parca = eksikSira.slice(0, 6).map(function (g) {
+        return g.sembol + ' (' + g.n + ' satış, ' + r6(g.adet) + ' adet, ilk ' + g.ilk + ')';
+      });
       uyarilar.push({
         kod: 'ENVANTER',
-        mesaj: x.tarih + ' tarihli ' + x.sembol + ' satışının ' + x.adet + ' adedi için alış kaydı bulunamadı. Bu kısım hesaba katılmadı. Alışın yapıldığı yılların dosyalarını da ekleyin.'
+        mesaj: 'Şu hisselerin satışı için alış kaydı bulunamadı ve hesaba katılmadı: ' + parca.join('; ') +
+          (eksikSira.length > 6 ? '; ve ' + (eksikSira.length - 6) + ' hisse daha' : '') +
+          '. Alışın yapıldığı yılların dosyalarını da ekleyin. Hesapta açığa satış varsa bu araç onu hesaplayamaz.'
       });
-    });
+    }
 
     // Yil ozetleri
     var yillar = {};
