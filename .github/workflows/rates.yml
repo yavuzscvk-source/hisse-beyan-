@@ -1,1 +1,29 @@
+name: Kurlari guncelle
 
+on:
+  workflow_dispatch:
+  schedule:
+    # Hafta ici her gun 16:30 (Turkiye saati) - TCMB kurlari 15:30'da aciklar
+    - cron: "30 13 * * 1-5"
+
+permissions:
+  contents: write
+
+jobs:
+  kurlar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: TCMB kurlarini indir
+        run: python rates.py
+      - name: Degisiklik varsa kaydet
+        run: |
+          git config user.name "kur-botu"
+          git config user.email "kur-botu@users.noreply.github.com"
+          git add rates.json
+          git diff --cached --quiet || git commit -m "Kurlar guncellendi"
+          git push
