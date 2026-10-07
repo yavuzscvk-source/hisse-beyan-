@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yurt Dışı Hisse Vergi Hesaplama — IBKR Ekstresinden Beyan Tutarı</title>
+<meta name="description" content="Interactive Brokers ekstrenizi yükleyin; FIFO, TCMB döviz alış kuru ve Yİ-ÜFE endekslemesiyle beyan edilecek değer artışı kazancını adım adım görün. Dosyanız cihazınızdan çıkmaz.">
+<link rel="canonical" href="https://hisse-beyan.vercel.app/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%230a6a52%27/%3E%3Ctext x=%2716%27 y=%2723%27 font-size=%2720%27 font-family=%27Arial%27 font-weight=%27700%27 text-anchor=%27middle%27 fill=%27white%27%3E%E2%82%BA%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#f5f4ef; --card:#ffffff; --ink:#151a21; --muted:#5b6470; --line:#dedbd2;
+  --accent:#0a6a52; --accent-ink:#ffffff; --soft:#e7f1ed; --warn:#8a5a00; --warn-bg:#fdf3dc;
+  --loss:#a3271f; --gain:#0a6a52;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0f1317; --card:#171c22; --ink:#e9e6df; --muted:#9aa3ad; --line:#2a313a;
+    --accent:#52c9a2; --accent-ink:#0f1317; --soft:#17302a; --warn:#f0c36a; --warn-bg:#2e2716;
+    --loss:#ff8b80; --gain:#52c9a2;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:720px;margin:0 auto;padding:0 16px 64px}
+header{padding:20px 0 4px;display:flex;align-items:center;gap:10px}
+.logo{width:28px;height:28px;border-radius:7px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:700;font-size:15px}
+.brand{font-weight:650;letter-spacing:-.01em}
+h1{font-size:28px;line-height:1.18;letter-spacing:-.02em;margin:22px 0 10px;text-wrap:balance}
+h2{font-size:19px;letter-spacing:-.01em;margin:0 0 12px}
+h3{font-size:16px;margin:18px 0 6px}
+p{margin:0 0 12px}
+.lead{color:var(--muted);font-size:17px;margin-bottom:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin:14px 0}
+.privacy{display:flex;gap:10px;align-items:flex-start;background:var(--soft);border-radius:12px;padding:12px 14px;font-size:14.5px;margin:0 0 6px}
+.privacy b{display:block}
+.btn{appearance:none;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);font:inherit;font-weight:600;border-radius:10px;padding:13px 16px;width:100%;cursor:pointer;display:block;text-align:center}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn+.btn{margin-top:10px}
+.btn:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.files{list-style:none;padding:0;margin:12px 0 0;font-size:14.5px}
+.files li{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.files span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.files button{border:0;background:none;color:var(--muted);font:inherit;text-decoration:underline;cursor:pointer;padding:0}
+label{display:block;font-size:14.5px;font-weight:600;margin:14px 0 6px}
+select,input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px}
+.hint{font-size:13.5px;color:var(--muted);margin:6px 0 0}
+details{border-top:1px solid var(--line);padding:12px 0}
+details:last-child{padding-bottom:0}
+summary{cursor:pointer;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";color:var(--muted);font-weight:400}
+details[open]>summary::after{content:"–"}
+.big{font-size:34px;font-weight:700;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.eyebrow{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;margin-bottom:6px}
+.rows{margin:14px 0 0;padding:0}
+.rows div{display:flex;justify-content:space-between;gap:14px;padding:8px 0;border-top:1px solid var(--line);font-size:15px}
+.rows dt{color:var(--muted)}
+.rows dd{margin:0;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.gain{color:var(--gain)} .loss{color:var(--loss)}
+.warn{background:var(--warn-bg);color:var(--warn);border-radius:12px;padding:12px 14px;font-size:14.5px;margin:10px 0}
+.warn ul{margin:6px 0 0;padding-left:18px}
+.tag{display:inline-block;font-size:12.5px;font-weight:600;background:var(--warn-bg);color:var(--warn);border-radius:999px;padding:3px 10px;margin-bottom:10px}
+.lot summary{font-weight:500;font-size:15px}
+.lot>summary::after,.lot[open]>summary::after{content:""}
+.lot .l{min-width:0}
+.lot .l small{display:block;color:var(--muted);font-size:13px}
+.lot .r{font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600}
+.steps{font-size:14px;color:var(--muted);margin:10px 0 2px;padding:0;list-style:none}
+.steps li{padding:5px 0;display:flex;justify-content:space-between;gap:12px}
+.steps li span:last-child{color:var(--ink);font-variant-numeric:tabular-nums;text-align:right}
+.more{margin-top:12px}
+.small{font-size:13.5px;color:var(--muted)}
+.hidden{display:none}
+ol.how{padding-left:20px;margin:0 0 12px}
+ol.how li{margin-bottom:6px}
+a{color:var(--accent)}
+footer{margin-top:28px;font-size:13.5px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><div class="logo" aria-hidden="true">₺</div><div class="brand">Hisse Beyan</div></header>
+
+  <h1>Yurt dışı hisse kazancınızı beyannameye hazır hale getirin</h1>
+  <p class="lead">Interactive Brokers ekstrenizi yükleyin. Her satışı alışıyla eşleştirir, işlem günündeki TCMB kuruyla TL'ye çevirir, enflasyon endekslemesini uygular ve beyan edeceğiniz tutarı adım adım gösterir.</p>
+
+  <div class="privacy"><span aria-hidden="true">🔒</span><span><b>Dosyanız bu cihazdan çıkmaz.</b>Hesap tarayıcınızın içinde yapılır; ekstreniz hiçbir sunucuya gönderilmez, hesap açmanız gerekmez.</span></div>
+
+  <section class="card" id="adim1">
+    <h2>1. Ekstrenizi ekleyin</h2>
+    <label class="btn" for="dosya" id="dosyaBtn">IBKR dosyası seç (CSV)</label>
+    <input type="file" id="dosya" multiple accept=".csv,text/csv,text/comma-separated-values,application/vnd.ms-excel">
+    <button class="btn ghost" id="ornekBtn" type="button">Örnek veriyle dene</button>
+    <ul class="files" id="dosyaListe"></ul>
+    <p class="hint">Hisseyi aldığınız yıldan sattığınız yıla kadar her yılın dosyasını ekleyin. Alış kaydı olmayan satış hesaplanamaz.</p>
+    <details style="margin-top:14px">
+      <summary>Dosyayı IBKR'den nasıl indiririm?</summary>
+      <ol class="how" style="margin-top:10px">
+        <li>IBKR'ye girin: <b>Performance &amp; Reports → Statements</b>.</li>
+        <li><b>Activity</b> satırındaki oka dokunun.</li>
+        <li>Period: <b>Annual</b>, yıl seçin. Format: <b>CSV</b>. Language: <b>English</b>.</li>
+        <li><b>Download</b>'a dokunun. Bunu her yıl için tekrarlayın.</li>
+      </ol>
+    </details>
+  </section>
+
+  <div id="durum"></div>
+
+  <section class="card hidden" id="adim2">
+    <h2>2. Yıl ve varsayımlar</h2>
+    <label for="yil">Beyan yılı (gelirin elde edildiği yıl)</label>
+    <select id="yil"></select>
+    <label for="diger">Bu yıl beyan edeceğiniz diğer gelirler (TL, yoksa boş bırakın)</label>
+    <input type="text" id="diger" inputmode="numeric" placeholder="0" autocomplete="off">
+    <p class="hint">Yalnızca tahmini vergiyi hesaplamak için kullanılır.</p>
+    <details style="margin-top:16px">
+      <summary>Hesap varsayımları</summary>
+      <label for="kurGunu">Hangi günün kuru kullanılsın?</label>
+      <select id="kurGunu">
+        <option value="ayni">İşlem gününün TCMB döviz alış kuru</option>
+        <option value="onceki">İşlemden bir önceki iş gününün kuru</option>
+      </select>
+      <p class="hint">Hafta sonu ve tatil günlerinde açıklanmış son kur kullanılır.</p>
+      <label for="komisyon">Komisyonlar</label>
+      <select id="komisyon">
+        <option value="1">Alış komisyonu maliyete eklensin, satış komisyonu hasılattan düşülsün</option>
+        <option value="0">Komisyonları hesaba katma</option>
+      </select>
+      <label for="endeks">Yİ-ÜFE endekslemesi</label>
+      <select id="endeks">
+        <option value="1">Artış %10 ve üzerindeyse maliyeti endeksle (zarar doğurmaz)</option>
+        <option value="2">Artış %10 ve üzerindeyse endeksle (zarar doğurabilir)</option>
+        <option value="0">Endeksleme uygulama</option>
+      </select>
+    </details>
+  </section>
+
+  <div id="sonuc"></div>
+
+  <section class="card">
+    <h2>Hesap nasıl yapılıyor?</h2>
+    <ol class="how">
+      <li><b>Eşleştirme (FIFO):</b> Satılan hisse, o hissenin en eski alışıyla eşleştirilir.</li>
+      <li><b>TL'ye çevirme:</b> Alış tutarı alış günündeki, satış tutarı satış günündeki TCMB döviz alış kuruyla çevrilir.</li>
+      <li><b>Endeksleme:</b> Alıştan satışa Yİ-ÜFE artışı %10 veya üzerindeyse alış maliyeti bu oranda artırılır. Alış ayından ve satış ayından bir önceki ayın endeksi kullanılır.</li>
+      <li><b>Mahsup:</b> Aynı yıl içindeki zararlar kârlardan düşülür. Kalan tutar değer artışı kazancıdır.</li>
+    </ol>
+    <p class="small">Yurt dışı hisse satış kazancında istisna tutarı yoktur; kazanç ne kadar olursa olsun izleyen yılın mart ayında yıllık beyannameyle bildirilir. Kaynaklar: Gelir Vergisi Kanunu mükerrer 80 ve mükerrer 81. maddeler, TCMB gösterge niteliğindeki kurlar, TÜİK Yİ-ÜFE (2003=100).</p>
+    <p class="small"><b>Önemli:</b> Bu araç bir hesaplama yardımcısıdır; vergi danışmanlığı veya yatırım tavsiyesi değildir. Sonuçları beyanname vermeden önce bir mali müşavirle doğrulayın. Opsiyon, vadeli işlem, tahvil ve transferle gelen hisseler hesaba katılmaz.</p>
+  </section>
+
+  <section class="card" id="rehberler"><h2>Rehberler</h2><p style="margin:0 0 10px"><a href="/ibkr-vergi-beyani">IBKR ile Yurt Dışı Hisse Vergisi Nasıl Beyan Edilir? Adım Adım Rehber</a></p><p style="margin:0 0 10px"><a href="/yurt-disi-hisse-vergisi">Yurt Dışı Hisse Senedi Kazancı Vergisi: Kurallar ve Sık Sorulanlar (2026)</a></p><p style="margin:0 0 10px"><a href="/yi-ufe-endeksleme">Yİ-ÜFE Endekslemesi Nedir? Hisse Satış Kazancında Maliyet Nasıl Artırılır</a></p><p style="margin:0 0 10px"><a href="/yurt-disi-temettu-beyani">Yurt Dışı Temettü (Kâr Payı) Beyanı: Sınır, Kur ve Stopaj Mahsubu</a></p></section>
+
+  <footer><span id="veriBilgi"></span></footer>
+</div>
+
+<script src="engine.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var durum = { dosyalar: [], ornek: false, kurlar: null, yufe: null, gercekKur: false, tumu: false };
+
+  var ORNEK_CSV = [
+    'Statement,Header,Field Name,Field Value',
+    'Statement,Data,Period,"January 1, 2023 - December 31, 2025"',
+    'Trades,Header,DataDiscriminator,Asset Category,Currency,Symbol,Date/Time,Quantity,T. Price,C. Price,Proceeds,Comm/Fee,Basis,Realized P/L,MTM P/L,Code',
+    'Trades,Data,Order,Stocks,USD,AAPL,"2023-03-15, 10:31:12",20,152.99,152.99,-3059.8,-1,3060.8,0,0,O',
+    'Trades,Data,Order,Stocks,USD,INTC,"2024-01-25, 11:02:40",40,49.1,49.1,-1964,-1,1965,0,0,O',
+    'Trades,Data,Order,Stocks,USD,NVDA,"2024-02-12, 10:15:03",5,720.5,720.5,-3602.5,-1,3603.5,0,0,O',
+    'Trades,Data,Order,Stocks,USD,MSFT,"2024-08-05, 12:44:21",6,398.2,398.2,-2389.2,-1,2390.2,0,0,O',
+    'Trades,Data,Order,Stocks,USD,INTC,"2025-02-20, 10:05:10",-40,24.3,24.3,972,-1,-1965,-994,0,C',
+    'Trades,Data,Order,Stocks,USD,AAPL,"2025-04-10, 10:40:00",-10,190.4,190.4,1904,-1,-1530.4,372.6,0,C',
+    'Trades,Data,Order,Stocks,USD,NVDA,"2025-07-15, 11:20:45",-30,165.2,165.2,4956,-1,-2162.1,2792.9,0,C',
+    'Trades,Data,Order,Stocks,USD,MSFT,"2025-09-10, 10:12:30",-6,501.3,501.3,3007.8,-1,-2390.2,616.6,0,C',
+    'Corporate Actions,Header,Asset Category,Currency,Report Date,Date/Time,Description,Quantity,Proceeds,Value,Realized P/L,Code',
+    'Corporate Actions,Data,Stocks,USD,2024-06-10,"2024-06-07, 20:25:00","NVDA(US67066G1040) Split 10 for 1 (NVDA, NVIDIA CORP, US67066G1040)",45,0,0,0,',
+    'Dividends,Header,Currency,Date,Description,Amount',
+    'Dividends,Data,USD,2025-02-13,AAPL(US0378331005) Cash Dividend USD 0.25 per Share (Ordinary Dividend),5',
+    'Dividends,Data,USD,2025-06-12,MSFT(US5949181045) Cash Dividend USD 0.83 per Share (Ordinary Dividend),4.98',
+    'Dividends,Data,Total,,,9.98',
+    'Withholding Tax,Header,Currency,Date,Description,Amount,Code',
+    'Withholding Tax,Data,USD,2025-02-13,AAPL(US0378331005) Cash Dividend USD 0.25 per Share - US Tax,-1,',
+    'Withholding Tax,Data,USD,2025-06-12,MSFT(US5949181045) Cash Dividend USD 0.83 per Share - US Tax,-1,',
+    'Withholding Tax,Data,Total,,,-2,'
+  ].join('\n');
+
+  // Gercek kur dosyasi yoksa ornek icin yaklasik kur uretir (gercek degildir)
+  function ornekKurlar() {
+    var nokta = [['2023-01-01', 18.7], ['2024-01-01', 29.5], ['2025-01-01', 35.3], ['2026-01-01', 42.9], ['2027-01-01', 47.5]];
+    var usd = {}, d = new Date('2023-01-02T00:00:00Z'), son = new Date('2026-12-31T00:00:00Z');
+    for (; d <= son; d.setUTCDate(d.getUTCDate() + 1)) {
+      if (d.getUTCDay() === 0 || d.getUTCDay() === 6) continue;
+      var g = d.toISOString().slice(0, 10);
+      for (var i = 0; i < nokta.length - 1; i++) {
+        if (g >= nokta[i][0] && g < nokta[i + 1][0]) {
+          var a = Date.parse(nokta[i][0]), b = Date.parse(nokta[i + 1][0]);
+          usd[g] = Math.round((nokta[i][1] + (nokta[i + 1][1] - nokta[i][1]) * (d - a) / (b - a)) * 10000) / 10000;
+        }
+      }
+    }
+    return { rates: { USD: usd } };
+  }
+
+  function esc(s) {
+    return String(s === null || s === undefined ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function tl(x) { return x === null || x === undefined ? '—' : x.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' TL'; }
+  function sy(x, n) { return x === null || x === undefined ? '—' : x.toLocaleString('tr-TR', { minimumFractionDigits: n, maximumFractionDigits: n }); }
+  function trh(s) { return s ? s.slice(8, 10) + '.' + s.slice(5, 7) + '.' + s.slice(0, 4) : '—'; }
+  function ay(s) { return s ? s.slice(5, 7) + '/' + s.slice(0, 4) : '—'; }
+  function adet(x) { return x.toLocaleString('tr-TR', { maximumFractionDigits: 6 }); }
+
+  function ayarlar() {
+    var e = $('endeks').value;
+    return {
+      kurGunu: $('kurGunu').value,
+      komisyonDahil: $('komisyon').value === '1',
+      endeksleme: e !== '0',
+      endeksZararDogurur: e === '2'
+    };
+  }
+
+  function dosyaListesi() {
+    var ul = $('dosyaListe');
+    ul.innerHTML = durum.dosyalar.map(function (d, i) {
+      var n = d.islemler.length;
+      return '<li><span>' + esc(d.dosya) + ' <span class="small">(' + n + ' işlem' + (d.donem ? ', ' + esc(d.donem) : '') + ')</span></span>' +
+        '<button type="button" data-sil="' + i + '">Kaldır</button></li>';
+    }).join('');
+  }
+
+  function ciz() {
+    dosyaListesi();
+    var kutu = $('sonuc'), d = $('durum');
+    d.innerHTML = '';
+    if (!durum.dosyalar.length) { kutu.innerHTML = ''; $('adim2').classList.add('hidden'); return; }
+
+    var kurlar = durum.kurlar;
+    var ornekKur = false;
+    if (!durum.gercekKur) {
+      if (durum.ornek) { kurlar = ornekKurlar(); ornekKur = true; }
+      else {
+        d.innerHTML = '<div class="warn"><b>Kur verisi yüklenemedi.</b> Hesap yapılamıyor. Sayfayı yenileyip tekrar deneyin.</div>';
+        kutu.innerHTML = ''; return;
+      }
+    }
+
+    var veri = Engine.birlestir(durum.dosyalar);
+    var s = Engine.hesapla(veri, kurlar, durum.yufe, ayarlar());
+    var yillar = Object.keys(s.yillar).sort().reverse();
+    $('adim2').classList.remove('hidden');
+
+    if (!yillar.length) {
+      kutu.innerHTML = '<section class="card"><h2>Satış veya temettü bulunamadı</h2><p>Bu dosyalarda hesaplanacak hisse satışı ya da temettü yok.</p>' + uyariKutusu(s.uyarilar) + '</section>';
+      return;
+    }
+    var sec = $('yil'), onceki = sec.value;
+    sec.innerHTML = yillar.map(function (y) { return '<option value="' + y + '">' + y + '</option>'; }).join('');
+    sec.value = yillar.indexOf(onceki) >= 0 ? onceki : yillar[0];
+    var Y = s.yillar[sec.value];
+    var diger = Number(String($('diger').value).replace(/\./g, '').replace(',', '.').replace(/[^\d.]/g, '')) || 0;
+    var vergi = Engine.ekVergi(Y.yil, Y.matrahTL, diger);
+    var satirlar = s.eslesmeler.filter(function (m) { return m.satisTarihi.slice(0, 4) === sec.value; });
+
+    var h = '';
+    h += '<section class="card">';
+    if (durum.ornek) h += '<span class="tag">Örnek veri' + (ornekKur ? ' · kurlar yaklaşık, gerçek değil' : '') + '</span>';
+    h += '<div class="eyebrow">' + Y.yil + ' yılı · beyan edilecek değer artışı kazancı</div>';
+    h += '<div class="big">' + tl(Y.matrahTL) + '</div>';
+    if (Y.netTL < 0) h += '<p class="hint">Yıl zararla kapandı (' + tl(Y.netTL) + '). Beyan edilecek kazanç yok; zarar sonraki yıla devretmez.</p>';
+    else if (Y.satisAdedi === 0) h += '<p class="hint">Bu yıl hesaplanan hisse satışı yok.</p>';
+    else h += '<p class="hint">' + (Y.yil + 1) + ' yılının mart ayında verilecek yıllık gelir vergisi beyannamesine yazılır.</p>';
+    h += '<dl class="rows">';
+    h += satir('Satış hasılatı', tl(Y.hasilatTL));
+    h += satir('Alış maliyeti', tl(Y.maliyetTL));
+    if (Y.endeksliMaliyetTL !== Y.maliyetTL) h += satir('Endekslenmiş maliyet', tl(Y.endeksliMaliyetTL));
+    h += satir('Kârlı satışlar', '<span class="gain">' + tl(Y.karTL) + '</span>');
+    h += satir('Zararlı satışlar', Y.zararTL > 0 ? '<span class="loss">−' + tl(Y.zararTL) + '</span>' : tl(0));
+    h += satir('Net', tl(Y.netTL));
+    if (vergi !== null && Y.matrahTL > 0) h += satir('Tahmini gelir vergisi', '<b>' + tl(vergi) + '</b>');
+    h += '</dl>';
+    if (vergi !== null && Y.matrahTL > 0) h += '<p class="hint">Tahmini vergi, ' + Y.yil + ' gelir vergisi tarifesine göre ve yukarıda girdiğiniz diğer gelirlerin üzerine eklenerek hesaplanır. Ücret geliriniz varsa sonuç değişebilir.</p>';
+    else if (vergi === null && Y.matrahTL > 0) h += '<p class="hint">' + Y.yil + ' yılı için tarife tanımlı olmadığından tahmini vergi gösterilmiyor.</p>';
+    if (Y.hesaplanamayan > 0) h += '<div class="warn"><b>' + Y.hesaplanamayan + ' satış hesaplanamadı.</b> Yukarıdaki tutar eksik. Aşağıdaki uyarılara bakın.</div>';
+    h += '</section>';
+
+    if (Y.temettuTL > 0 || Y.stopajTL > 0) {
+      h += '<section class="card"><h2>Temettü (' + Y.yil + ')</h2><dl class="rows">';
+      h += satir('Brüt temettü', tl(Y.temettuTL));
+      h += satir('Yurt dışında kesilen vergi', tl(Y.stopajTL));
+      if (Y.temettuSiniri !== null) h += satir('Beyan sınırı', tl(Y.temettuSiniri));
+      h += '</dl>';
+      if (Y.temettuBeyan === true) h += '<p class="hint"><b>Sınır aşıldı.</b> Temettünün tamamı beyan edilir. Yurt dışında kesilen vergi, bu gelire isabet eden Türkiye vergisinden mahsup edilebilir.</p>';
+      else if (Y.temettuBeyan === false) h += '<p class="hint">Temettü tutarı sınırın altında. Yurt dışı faiz gibi başka gelirleriniz varsa sınır hesabına onlar da girer; sınır tutarını teyit edin.</p>';
+      else h += '<p class="hint">Bu yıl için beyan sınırı tanımlı değil; mali müşavirinize sorun.</p>';
+      h += '</section>';
+    }
+
+    h += uyariKutusu(s.uyarilar);
+
+    if (satirlar.length) {
+      var goster = durum.tumu ? satirlar : satirlar.slice(0, 20);
+      h += '<section class="card"><h2>Satış dökümü (' + satirlar.length + ')</h2><p class="small">Bir satıra dokunun, hesabın adımlarını görün.</p>';
+      h += goster.map(lot).join('');
+      if (satirlar.length > goster.length) h += '<button class="btn ghost more" type="button" id="tumuBtn">Tümünü göster (' + satirlar.length + ')</button>';
+      h += '<button class="btn more" type="button" id="csvBtn">Dökümü indir (Excel için CSV)</button>';
+      h += '</section>';
+    }
+    kutu.innerHTML = h;
+  }
+
+  function satir(a, b) { return '<div><dt>' + a + '</dt><dd>' + b + '</dd></div>'; }
+
+  function uyariKutusu(u) {
+    if (!u.length) return '';
+    return '<div class="warn"><b>Dikkat edilmesi gerekenler</b><ul>' + u.map(function (w) { return '<li>' + esc(w.mesaj).replace(/(\d{4})-(\d{2})-(\d{2})/g, '$3.$2.$1') + '</li>'; }).join('') + '</ul></div>';
+  }
+
+  function lot(m) {
+    var h = '<details class="lot"><summary><span class="l">' + esc(m.sembol) + ' · ' + adet(m.adet) + ' adet<small>Alış ' + trh(m.alisTarihi) + ' → Satış ' + trh(m.satisTarihi) + '</small></span>';
+    if (!m.hesaplandi) return h + '<span class="r loss">Kur yok</span></summary><p class="small">Bu işlem için TCMB kuru bulunamadığından hesaplanamadı.</p></details>';
+    h += '<span class="r ' + (m.kazancTL < 0 ? 'loss' : 'gain') + '">' + tl(m.kazancTL) + '</span></summary><ul class="steps">';
+    function li(a, b) { return '<li><span>' + a + '</span><span>' + b + '</span></li>'; }
+    h += li('Alış tutarı', sy(m.alisTutar, 2) + ' ' + esc(m.pb));
+    if (m.alisKomisyon) h += li('Alış komisyonu', sy(m.alisKomisyon, 2) + ' ' + esc(m.pb));
+    h += li('Alış kuru (' + trh(m.alisKurTarihi) + ')', sy(m.alisKur, 4));
+    h += li('Maliyet', tl(m.maliyetTL));
+    h += li('Satış tutarı', sy(m.satisTutar, 2) + ' ' + esc(m.pb));
+    if (m.satisKomisyon) h += li('Satış komisyonu', sy(m.satisKomisyon, 2) + ' ' + esc(m.pb));
+    h += li('Satış kuru (' + trh(m.satisKurTarihi) + ')', sy(m.satisKur, 4));
+    h += li('Hasılat', tl(m.hasilatTL));
+    if (m.endeksOrani !== null && m.endeksOrani !== undefined) {
+      var art = (m.endeksOrani - 1) * 100;
+      h += li('Yİ-ÜFE artışı (' + ay(m.endeksAlisAyi) + ' → ' + ay(m.endeksSatisAyi) + ')', '%' + sy(art, 2));
+      h += li('Endeksleme', m.endekslendi ? 'Uygulandı' : (art >= 10 ? 'Uygulanmadı' : 'Uygulanmadı (%10 altı)'));
+      if (m.endekslendi) h += li('Endekslenmiş maliyet', tl(m.endeksliMaliyetTL));
+    }
+    h += li('<b>Kazanç / zarar</b>', '<b>' + tl(m.kazancTL) + '</b>');
+    return h + '</ul></details>';
+  }
+
+  function dosyaEkle(ad, metin) {
+    var p = Engine.parseIBKR(metin, ad);
+    if (!p.islemler.length && !p.temettuler.length) {
+      var neden = p.uyarilar.length ? p.uyarilar[0].mesaj : 'Bu dosyada hisse işlemi bulunamadı.';
+      $('durum').innerHTML = '<div class="warn"><b>' + esc(ad) + ' okunamadı.</b> ' + esc(neden) + '</div>';
+      return false;
+    }
+    if (durum.ornek) { durum.dosyalar = []; durum.ornek = false; }
+    durum.dosyalar = durum.dosyalar.filter(function (d) { return d.dosya !== ad; });
+    durum.dosyalar.push(p);
+    return true;
+  }
+
+  $('dosya').addEventListener('change', function (e) {
+    var liste = Array.prototype.slice.call(e.target.files || []);
+    if (!liste.length) return;
+    Promise.all(liste.map(function (f) {
+      return f.text().then(function (t) { return { ad: f.name, metin: t }; });
+    })).then(function (okunan) {
+      var hepsi = true;
+      okunan.forEach(function (o) { if (!dosyaEkle(o.ad, o.metin)) hepsi = false; });
+      var hata = $('durum').innerHTML;
+      ciz();
+      if (!hepsi) $('durum').innerHTML = hata + $('durum').innerHTML;
+      e.target.value = '';
+    }).catch(function () {
+      $('durum').innerHTML = '<div class="warn">Dosya okunamadı. Tekrar deneyin.</div>';
+    });
+  });
+
+  $('ornekBtn').addEventListener('click', function () {
+    durum.dosyalar = [Engine.parseIBKR(ORNEK_CSV, 'ornek-ekstre.csv')];
+    durum.ornek = true; durum.tumu = false;
+    ciz();
+    $('adim2').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  $('dosyaListe').addEventListener('click', function (e) {
+    var i = e.target.getAttribute('data-sil');
+    if (i === null) return;
+    durum.dosyalar.splice(Number(i), 1);
+    if (!durum.dosyalar.length) durum.ornek = false;
+    ciz();
+  });
+
+  ['yil', 'kurGunu', 'komisyon', 'endeks'].forEach(function (id) { $(id).addEventListener('change', ciz); });
+  $('diger').addEventListener('input', ciz);
+
+  $('sonuc').addEventListener('click', function (e) {
+    if (e.target.id === 'tumuBtn') { durum.tumu = true; ciz(); return; }
+    if (e.target.id !== 'csvBtn') return;
+    var kurlar = durum.gercekKur ? durum.kurlar : ornekKurlar();
+    var s = Engine.hesapla(Engine.birlestir(durum.dosyalar), kurlar, durum.yufe, ayarlar());
+    var blob = new Blob([Engine.csvDokum(s, $('yil').value)], { type: 'text/csv;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'hisse-beyan-' + $('yil').value + '.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+  });
+
+  function yukle(yol) {
+    return fetch(yol, { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error(yol); return r.json(); });
+  }
+  Promise.all([
+    yukle('yufe.json').then(function (j) { durum.yufe = j; }).catch(function () { durum.yufe = { index: {} }; }),
+    yukle('rates.json').then(function (j) { durum.kurlar = j; durum.gercekKur = !!(j && j.rates && j.rates.USD); }).catch(function () { durum.gercekKur = false; })
+  ]).then(function () {
+    var b = [];
+    if (durum.gercekKur && durum.kurlar._meta) b.push('TCMB kurları: ' + trh(durum.kurlar._meta.ilk_gun) + ' – ' + trh(durum.kurlar._meta.son_gun));
+    if (durum.yufe._meta) b.push('Yİ-ÜFE: ' + ay(durum.yufe._meta.son_ay) + ' ayına kadar');
+    $('veriBilgi').textContent = b.join(' · ');
+    if (durum.dosyalar.length) ciz();
+  });
+})();
+</script>
+</body>
+</html>
