@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://hisse-beyan.vercel.app/sitemap.xml
