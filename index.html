@@ -79,6 +79,20 @@ ol.how{padding-left:20px;margin:0 0 12px}
 ol.how li{margin-bottom:6px}
 a{color:var(--accent)}
 footer{margin-top:28px;font-size:13.5px;color:var(--muted)}
+
+.printonly{display:none}
+@media print{
+  :root{--bg:#fff;--card:#fff;--ink:#000;--muted:#333;--line:#bbb;--accent:#000;--soft:#fff;--warn:#000;--warn-bg:#fff;--loss:#000;--gain:#000}
+  body{background:#fff;font-size:12px}
+  header,.privacy,#adim1,#adim2,#durum,#rehberler,footer,.btn,.more,h1,.lead,#sonuc ~ .card,.hint{display:none!important}
+  .printonly{display:block!important;margin:0 0 12px}
+  .printonly h2{font-size:18px;margin:0 0 4px}
+  .card{border:0;padding:0;margin:10px 0;break-inside:avoid}
+  details.lot{break-inside:avoid;border-top:1px solid var(--line)}
+  details.lot>summary{font-weight:600}
+  .big{font-size:24px}
+  .warn{border:1px solid #888}
+}
 </style>
 </head>
 <body>
@@ -139,6 +153,7 @@ footer{margin-top:28px;font-size:13.5px;color:var(--muted)}
     </details>
   </section>
 
+  <div class="printonly"><h2>Hisse Beyan — yurt dışı hisse değer artışı kazancı raporu</h2><div id="yazTarih"></div><p>Bu rapor bir hesaplama yardımcısıdır; vergi danışmanlığı değildir. Beyannameden önce doğrulayın.</p></div>
   <div id="sonuc"></div>
 
   <section class="card">
@@ -153,7 +168,7 @@ footer{margin-top:28px;font-size:13.5px;color:var(--muted)}
     <p class="small"><b>Önemli:</b> Bu araç bir hesaplama yardımcısıdır; vergi danışmanlığı veya yatırım tavsiyesi değildir. Sonuçları beyanname vermeden önce bir mali müşavirle doğrulayın. Opsiyon, vadeli işlem, tahvil ve transferle gelen hisseler hesaba katılmaz.</p>
   </section>
 
-  <section class="card" id="rehberler"><h2>Rehberler</h2><p style="margin:0 0 10px"><a href="/ibkr-vergi-beyani">IBKR ile Yurt Dışı Hisse Vergisi Nasıl Beyan Edilir? Adım Adım Rehber</a></p><p style="margin:0 0 10px"><a href="/yurt-disi-hisse-vergisi">Yurt Dışı Hisse Senedi Kazancı Vergisi: Kurallar ve Sık Sorulanlar (2026)</a></p><p style="margin:0 0 10px"><a href="/yi-ufe-endeksleme">Yİ-ÜFE Endekslemesi Nedir? Hisse Satış Kazancında Maliyet Nasıl Artırılır</a></p><p style="margin:0 0 10px"><a href="/yurt-disi-temettu-beyani">Yurt Dışı Temettü (Kâr Payı) Beyanı: Sınır, Kur ve Stopaj Mahsubu</a></p></section>
+  <section class="card" id="rehberler"><h2>Rehberler</h2><p style="margin:0 0 10px"><a href="/ibkr-vergi-beyani">IBKR ile Yurt Dışı Hisse Vergisi Nasıl Beyan Edilir? Adım Adım Rehber</a></p><p style="margin:0 0 10px"><a href="/yurt-disi-hisse-vergisi">Yurt Dışı Hisse Senedi Kazancı Vergisi: Kurallar ve Sık Sorulanlar (2026)</a></p><p style="margin:0 0 10px"><a href="/yi-ufe-endeksleme">Yİ-ÜFE Endekslemesi Nedir? Hisse Satış Kazancında Maliyet Nasıl Artırılır</a></p><p style="margin:0 0 10px"><a href="/yurt-disi-temettu-beyani">Yurt Dışı Temettü (Kâr Payı) Beyanı: Sınır, Kur ve Stopaj Mahsubu</a></p><p style="margin:0 0 10px"><a href="/yurt-disi-hisse-vergi-istisnasi">Yurt Dışı Hisse Kazancında Vergi İstisnası Var mı? (2025–2026)</a></p><p style="margin:0 0 10px"><a href="/yurt-disi-hisse-zarar-mahsubu">Yurt Dışı Hisse Zararı Kârdan Nasıl Düşülür? Zarar Mahsubu Rehberi</a></p><p style="margin:0 0 10px"><a href="/yurt-disi-hisse-vergi-ornegi">Yurt Dışı Hisse Vergisi Hesaplama Örneği: Kur, Komisyon ve Endeksleme Adım Adım</a></p></section>
 
   <footer><span id="veriBilgi"></span></footer>
 </div>
@@ -311,6 +326,7 @@ footer{margin-top:28px;font-size:13.5px;color:var(--muted)}
       h += goster.map(lot).join('');
       if (satirlar.length > goster.length) h += '<button class="btn ghost more" type="button" id="tumuBtn">Tümünü göster (' + satirlar.length + ')</button>';
       h += '<button class="btn more" type="button" id="csvBtn">Dökümü indir (Excel için CSV)</button>';
+      h += '<button class="btn ghost more" type="button" id="yazBtn">Raporu PDF olarak kaydet / yazdır</button>';
       h += '</section>';
     }
     kutu.innerHTML = h;
@@ -396,6 +412,7 @@ footer{margin-top:28px;font-size:13.5px;color:var(--muted)}
 
   $('sonuc').addEventListener('click', function (e) {
     if (e.target.id === 'tumuBtn') { durum.tumu = true; ciz(); return; }
+    if (e.target.id === 'yazBtn') { window.print(); return; }
     if (e.target.id !== 'csvBtn') return;
     var kurlar = durum.gercekKur ? durum.kurlar : ornekKurlar();
     var s = Engine.hesapla(Engine.birlestir(durum.dosyalar), kurlar, durum.yufe, ayarlar());
@@ -405,6 +422,14 @@ footer{margin-top:28px;font-size:13.5px;color:var(--muted)}
     a.download = 'hisse-beyan-' + $('yil').value + '.csv';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+  });
+
+  window.addEventListener('beforeprint', function () {
+    $('yazTarih').textContent = 'Hazırlanma tarihi: ' + new Date().toLocaleDateString('tr-TR') + ' · Beyan yılı: ' + $('yil').value;
+    document.querySelectorAll('details.lot').forEach(function (d) { d.setAttribute('data-ac', d.open ? '1' : '0'); d.open = true; });
+  });
+  window.addEventListener('afterprint', function () {
+    document.querySelectorAll('details.lot').forEach(function (d) { d.open = d.getAttribute('data-ac') === '1'; });
   });
 
   function yukle(yol) {
