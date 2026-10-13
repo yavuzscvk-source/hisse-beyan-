@@ -6,13 +6,16 @@ Yurt dışı hisse/temettü kazançlarının Türkiye'de beyanı için statik si
 - `index.html` + konu sayfaları (`ibkr-vergi-beyani.html`, `yurt-disi-hisse-vergisi.html`, `yurt-disi-temettu-beyani.html`, `yi-ufe-endeksleme.html`, `yurt-disi-hisse-zarar-mahsubu.html`, `yurt-disi-hisse-vergi-istisnasi.html`, `yurt-disi-hisse-vergi-ornegi.html`).
 - `engine.js`: hesaplama motoru. `rates.json`: TCMB kurları. `yufe.json`: Yİ-ÜFE endeksleri.
 - `rates.py` + `.github/workflows/rates.yml`: hafta içi 16:30 TR'de kurları çekip "Kurlar guncellendi" commit'i atar (kur-botu).
+- Yasal sayfalar: `hakkinda.html`, `iletisim.html`, `gizlilik-politikasi.html` (iletişim e-postası: freelancervergi@gmail.com).
+- Her sayfada Vercel Web Analytics betiği, JSON-LD şema (rehberlerde Article + Breadcrumb + FAQPage, ana sayfada WebApplication) ve footer'da yasal linkler + freelancervergi.com.tr linki var. Yeni sayfa da aynı yapıda olmalı.
 - Yeni sayfa eklenince `sitemap.xml` güncellenmeli.
 - `CLAUDE.md`, `.vercelignore` ile yayından hariç tutulur.
 
 ## Durum (son güncelleme: 13 Ekim 2026)
 - 7 Ekim: sayfa adlarındaki " 2.html" ekleri düzeltildi, sitemap güncellendi.
 - Kur güncellemesi otomatik çalışıyor.
-- Not: kökte gereksiz bir `github/workflows` kopyası var (etkin olan `.github/workflows`); silinebilir.
+- 13 Ekim: Analytics, JSON-LD şema, ana sayfa og etiketleri, yasal sayfalar eklendi; gereksiz `github/` klasörü silindi.
+- Sıradaki: kendi alan adı (AdSense vercel.app kabul etmiyor), ardından AdSense (yayıncı kimliği freelancer-vergi'deki ile aynı) ve `ads.txt`.
 
 ## Kullanıcı ve çalışma şekli
 - Kullanıcıyla Türkçe konuş. Saat dilimi: Europe/Istanbul (UTC+3).
