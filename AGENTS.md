@@ -26,3 +26,10 @@ Static website and calculators for Turkish tax reporting of foreign-stock and di
 - When updating tax tariffs, exemptions, declaration limits, or legal explanations, verify them against current official sources and record the applicable tax year and source date.
 - Keep legal rules, calculator assumptions, and example outputs clearly distinguishable; explain material assumptions rather than presenting an estimate as an official assessment.
 - Preserve or add test cases for FIFO lot matching, exchange-rate dates, Yİ-ÜFE indexation, loss offset, rounding, and threshold boundaries when those calculation paths change.
+
+## Change-impact and release checks
+- Before editing `engine.js`, tax thresholds, rates, or index data, identify affected calculators, guide pages, examples, and dependent data formats; ask before broad changes to legal or calculation behavior.
+- For legal/tax changes, record the applicable tax year, official source, publication/effective date, and any assumptions. If current official verification is unavailable, mark the claim for review rather than presenting it as confirmed.
+- Test normal and boundary cases for FIFO matching, currency/date selection, Yİ-ÜFE, loss offset, exemptions, rounding, and zero/negative inputs where applicable.
+- After editing pages, check internal links, sitemap consistency, metadata/JSON-LD, responsive layout, and that legal caveats remain clear. After editing rate workflows, check permissions, cron timezone, and expected generated-file changes.
+- Review the final diff for unrelated edits, secrets, unsupported tax claims, and mismatches between calculator behavior and explanatory examples. Report which checks ran and what remains unverified.
