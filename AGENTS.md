@@ -21,3 +21,8 @@ Static website and calculators for Turkish tax reporting of foreign-stock and di
 - Test representative calculation cases, including boundary values, negative/zero values where relevant, rounding, and currency/date assumptions.
 - Check HTML links, metadata, JSON-LD validity, and sitemap consistency after page changes.
 - Do not claim tests or legal verification were completed unless actually performed. Review the diff before committing.
+
+## Tax-calculation safeguards
+- When updating tax tariffs, exemptions, declaration limits, or legal explanations, verify them against current official sources and record the applicable tax year and source date.
+- Keep legal rules, calculator assumptions, and example outputs clearly distinguishable; explain material assumptions rather than presenting an estimate as an official assessment.
+- Preserve or add test cases for FIFO lot matching, exchange-rate dates, Yİ-ÜFE indexation, loss offset, rounding, and threshold boundaries when those calculation paths change.
