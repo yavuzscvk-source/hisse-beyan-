@@ -9,7 +9,7 @@ Yurt dışı hisse/temettü kazançlarının Türkiye'de beyanı için statik si
 - Yasal sayfalar: `hakkinda.html`, `iletisim.html`, `gizlilik-politikasi.html` (iletişim e-postası: freelancervergi@gmail.com).
 - Her sayfada Vercel Web Analytics betiği, JSON-LD şema (rehberlerde Article + Breadcrumb + FAQPage, ana sayfada WebApplication) ve footer'da yasal linkler + freelancervergi.com.tr linki var. Yeni sayfa da aynı yapıda olmalı.
 - Yeni sayfa eklenince `sitemap.xml` güncellenmeli.
-- `CLAUDE.md`, `.vercelignore` ile yayından hariç tutulur.
+- `CLAUDE.md` ve `AGENTS.md`, `.vercelignore` ile yayından hariç tutulur.
 
 ## Durum (son güncelleme: 13 Ekim 2026)
 - 7 Ekim: sayfa adlarındaki " 2.html" ekleri düzeltildi, sitemap güncellendi.
